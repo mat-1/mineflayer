@@ -17,6 +17,7 @@ import { Window } from "prismarine-windows";
 import { Recipe } from "prismarine-recipe";
 import { Block } from "prismarine-block";
 import { Entity } from "prismarine-entity";
+import { World } from "prismarine-world"
 
 export function createBot(options: BotOptions): Bot;
 
@@ -32,7 +33,6 @@ export interface BotOptions extends ClientOptions {
   difficulty?: number;
   chatLengthLimit?: number;
   physicsEnabled?: boolean;
-  client?: Client;
 }
 
 export type ChatLevel = "enabled" | "commandsOnly" | "disabled";
@@ -63,7 +63,6 @@ interface BotEvents {
   actionBar: (jsonMsg: ChatMessage) => void;
   error: (err: Error) => void;
   message: (jsonMsg: ChatMessage, position: string) => void;
-  messagestr: (message: string, position: string, jsonMsg: ChatMessage) => void;
   unmatchedMessage: (stringMsg: string, jsonMsg: ChatMessage) => void;
   login: () => void;
   spawn: () => void;
@@ -79,15 +78,8 @@ interface BotEvents {
   health: () => void;
   entitySwingArm: (entity: Entity) => void;
   entityHurt: (entity: Entity) => void;
-  entityDead: (entity: Entity) => void;
-  entityTaming: (entity: Entity) => void;
-  entityTamed: (entity: Entity) => void;
-  entityShakingOffWater: (entity: Entity) => void;
-  entityEatingGrass: (entity: Entity) => void;
   entityWake: (entity: Entity) => void;
   entityEat: (entity: Entity) => void;
-  entityCriticalEffect: (entity: Entity) => void;
-  entityMagicCriticalEffect: (entity: Entity) => void;
   entityCrouch: (entity: Entity) => void;
   entityUncrouch: (entity: Entity) => void;
   entityEquip: (entity: Entity) => void;
@@ -180,7 +172,7 @@ export interface Bot extends TypedEmitter<BotEvents> {
   scoreboard: { [slot in DisplaySlot]: ScoreBoard };
   controlState: ControlStateStatus;
   creative: creativeMethods;
-  world: any;
+  world: World;
   _client: Client;
   heldItem: Item | null;
   currentWindow: Window | null;
@@ -194,8 +186,6 @@ export interface Bot extends TypedEmitter<BotEvents> {
   blockAt(point: Vec3): Block | null;
 
   blockInSight(maxSteps: number, vectorLength: number): Block | null;
-
-  blockAtCursor(maxDistance?: number, matcher?: Function): Block | null;
 
   canSeeBlock(block: Block): boolean;
 
@@ -285,6 +275,8 @@ export interface Bot extends TypedEmitter<BotEvents> {
   ): Promise<void>;
 
   dig(block: Block, forceLook?: boolean | 'ignore', callback?: (err?: Error) => void): Promise<void>;
+
+  dig(block: Block, forceLook: boolean | 'ignore', digFace: 'auto' | Vec3 | 'raycast', callback?: (err?: Error) => void): Promise<void>;
 
   stopDigging(): void;
 
@@ -400,10 +392,6 @@ export interface Bot extends TypedEmitter<BotEvents> {
   addChatPattern(name: string, pattern: RegExp, options: chatPatternOptions): void;
 
   addChatPatternSet(name: string, patterns: Array<RegExp>, options?: chatPatternOptions): void;
-
-  removeChatPattern(name: string): void;
-
-  awaitMessage(...args: string | string[] | RegExp | RegExp[]): Promise<string>;
 }
 
 export interface chatPatternOptions {
